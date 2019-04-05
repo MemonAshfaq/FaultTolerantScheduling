@@ -143,7 +143,7 @@ if __name__ == '__main__':
     ax = fig.add_subplot(111)
     ax.axes.get_yaxis().set_visible(True)
     ax.set_aspect(1)
-    
+    plt.grid(True)
     def avg(a, b):
         return (a + b) / 2.0
     
@@ -159,7 +159,7 @@ if __name__ == '__main__':
                                             horizontalalignment='center',
                                             verticalalignment='center')
     
-    plt.xticks(np.arange(0,hyperperiod+1))
+    plt.xticks(np.arange(0,hyperperiod+1,2))
     plt.yticks(np.arange(0,len(task_types)+1))
     plt.xlim(0)
     plt.show()
