@@ -63,6 +63,10 @@ def print_taskset(tasks):
         print task
     print "--------------------------"
 
+
+def avg(a, b):
+    return (a + b) / 2.0
+
 if __name__ == '__main__':
     taskfile = open('taskfile.txt','r')
     tasklines = taskfile.readlines()
@@ -97,7 +101,7 @@ if __name__ == '__main__':
     tt = OrderedDict()
     for i in range(len(task_types)):
         tt[task_types[i].name] = [[0]*hyperperiod,task_types[i].color]
-    print tt
+
     #Create task instances
     for i in xrange(0, hyperperiod):
         for task_type in task_types:
@@ -127,38 +131,45 @@ if __name__ == '__main__':
                 print "Finish!" ,
         else:
             print 'No task uses the processor. '
+            tt[on_cpu.name][0][i] = 100
         print "\n"
 
     #Print remaining periodic tasks
     for p in tasks:
         print p.get_unique_name() + " is dropped due to overload at time: " + str(i)
 
-    #===========================================================================
-    # for i in range(0,3):
-    #     print tt["Task"+str(i+1)]
-    #===========================================================================
-    print tt
 
     fig = plt.figure()
     ax = fig.add_subplot(111)
     ax.axes.get_yaxis().set_visible(True)
     ax.set_aspect(1)
     plt.grid(True)
-    def avg(a, b):
-        return (a + b) / 2.0
     
     for y, (name,(row,color)) in enumerate(tt.items()):
-        print name
         for x, col in enumerate(row):
             x1 = [x, x+1]
             y1 = np.array([y, y])
             y2 = y1+1
-            if col:
+            if col==1:
                 plt.fill_between(x1, y1, y2=y2, color=color)
                 plt.text(avg(x1[0], x1[1]), avg(y1[0], y2[0]), name, 
                                             horizontalalignment='center',
                                             verticalalignment='center')
-    
+            if col==100:
+                plt.fill_between(x1, y1, y2=y2, color='grey')
+                plt.text(avg(x1[0], x1[1]), avg(y1[0], y2[0]), "E", 
+                                            horizontalalignment='center',
+                                            verticalalignment='center')
+        #mark deadlines and periods
+        for task in task_types:
+            for i in xrange(0,hyperperiod+1,clock_step):
+                if (i % task.p == task.d) and (i > 0):
+                    ax.annotate("",xy=(i,int(task.name[1])-1),xycoords= 'data',xytext=(i,int(task.name[1])),textcoords='data',
+                        arrowprops=dict(arrowstyle='simple'))
+                if (i % task.p == 0):
+                    ax.annotate("",xy=(i,int(task.name[1])),xycoords= 'data',xytext=(i,int(task.name[1])-1),textcoords='data',
+                        arrowprops=dict(arrowstyle='fancy'))
+
     plt.xticks(np.arange(0,hyperperiod+1,2))
     plt.yticks(np.arange(0,len(task_types)+1))
     plt.xlim(0)
