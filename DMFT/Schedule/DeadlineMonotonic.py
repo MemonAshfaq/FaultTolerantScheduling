@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from collections import OrderedDict
 
+missedDeadlines = 0
 #Priority comparison
 def priority_cmp(one, other):
     if one.priority < other.priority:
@@ -26,11 +27,12 @@ def tasktype_cmp(self, other):
     return 0
 
 class TaskIns(object):
-    def __init__(self, start, end, priority, name,color):
+    def __init__(self, start, end, priority, deadline, name,color):
         self.start    = start
         self.end      = end
         self.usage    = 0
         self.priority = priority
+        self.deadline = deadline
         self.name     = name.replace("\n", "")
         self.id = int(random.random() * 10000)
         self.color = color
@@ -109,11 +111,13 @@ if __name__ == '__main__':
                 start = i
                 end = start + task_type.c
                 priority = task_type.d
-                tasks.append(TaskIns(start=start, end=end, priority=priority, name=task_type.name,color=task_type.color))    
+                deadline = start + task_type.d
+                tasks.append(TaskIns(start=start, end=end, priority=priority, deadline=deadline, name=task_type.name,color=task_type.color))    
     
     
     clock_step = 1
     for i in xrange(0, hyperperiod, clock_step):
+        print "t:",i,":\t",
         #Fetch possible tasks that can use cpu and sort by priority
         possible = []
         for t in tasks:
@@ -124,15 +128,17 @@ if __name__ == '__main__':
         #Select task with highest priority
         if len(possible) > 0:
             on_cpu = possible[0]
-            print on_cpu.get_unique_name() , " uses the processor. " ,
+            if i >= on_cpu.deadline: #missed deadline already
+                print on_cpu.get_unique_name() , " missed the deadline. ",
+                missedDeadlines += 1
+            print on_cpu.get_unique_name() , " on CPU. "
             tt[on_cpu.name][0][i] = 1
             if on_cpu.use(clock_step):
                 tasks.remove(on_cpu)
-                print "Finish!" ,
+                print "Finish!" 
         else:
-            print 'No task uses the processor. '
+            print "CPU free."
             tt[on_cpu.name][0][i] = 100
-        print "\n"
 
     #Print remaining periodic tasks
     for p in tasks:
@@ -143,7 +149,7 @@ if __name__ == '__main__':
     ax = fig.add_subplot(111)
     ax.axes.get_yaxis().set_visible(True)
     ax.set_aspect(1)
-    plt.grid(True)
+    plt.grid(False)
     
     for y, (name,(row,color)) in enumerate(tt.items()):
         for x, col in enumerate(row):
@@ -172,5 +178,21 @@ if __name__ == '__main__':
 
     plt.xticks(np.arange(0,hyperperiod+1,2))
     plt.yticks(np.arange(0,len(task_types)+1))
-    plt.xlim(0)
+    plt.xlim(0,hyperperiod)
+    plt.ylim(0,len(task_types)+3)
+    
+    props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
+     
+    textStr = ""
+    for task in task_types:
+        textStr += "{}:({},{},{})  ".format(task.name,task.c,task.d,task.p)
+ 
+    textStr += "U: {:.2f}\n".format(util)
+    textStr += "Missed Deadlines: {}".format(missedDeadlines)
+ 
+    # place a text box in upper left in axes coords
+    ax.text(0.05, 0.95, textStr, transform=ax.transAxes, fontsize=8,
+            verticalalignment='top', bbox=props)
+    
     plt.show()
+    #plt.savefig('foo.png', bbox_inches='tight',dpi=500)    
