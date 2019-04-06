@@ -131,8 +131,10 @@ if __name__ == '__main__':
             if i >= on_cpu.deadline: #missed deadline already
                 print on_cpu.get_unique_name() , " missed the deadline. ",
                 missedDeadlines += 1
+                tt[on_cpu.name][0][i] = 500 #marker for missed deadline
+            else:
+                tt[on_cpu.name][0][i] = 1
             print on_cpu.get_unique_name() , " on CPU. "
-            tt[on_cpu.name][0][i] = 1
             if on_cpu.use(clock_step):
                 tasks.remove(on_cpu)
                 print "Finish!" 
@@ -166,6 +168,13 @@ if __name__ == '__main__':
                 plt.text(avg(x1[0], x1[1]), avg(y1[0], y2[0]), "E", 
                                             horizontalalignment='center',
                                             verticalalignment='center')
+                
+            if col==500:
+                plt.fill_between(x1, y1, y2=y2, color='yellow')
+                plt.text(avg(x1[0], x1[1]), avg(y1[0], y2[0]), name, 
+                                            horizontalalignment='center',
+                                            verticalalignment='center')
+                
         #mark deadlines and periods
         for task in task_types:
             for i in xrange(0,hyperperiod+1,clock_step):
