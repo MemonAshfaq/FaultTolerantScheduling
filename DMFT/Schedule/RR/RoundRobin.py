@@ -1,11 +1,14 @@
 
 chart = []
 class Process:
-    def __init__(self,pid,AT,BT):
+    def __init__(self,pid,AT,BT,deadline,period,color):
         self.pid = pid
         self.arrival = AT
         self.burst = BT
-
+        self.period = period
+        self.deadline = deadline
+        self.color = color
+        
 def shiftCL(plist):
     temp = plist[0]
     for i in range(len(plist)-1):
@@ -62,9 +65,10 @@ if __name__ == '__main__':
             line = line.split('\t')
             name = line[0]
             color = line[4][:-1]
-            for i in range (1,4):
-                line[i] = int(line[i])
-            task_types.append(Process(pid=name, AT=0, BT=line[1]))
+            c = int(line[1])
+            d = int(line[2])
+            p = int(line[3])
+            task_types.append(Process(pid=name, AT=0, BT=c,deadline=d,period=p,color=color))
     except Exception as exc:
         print "Invalid task file structure. Error: ", exc
 
@@ -74,4 +78,3 @@ if __name__ == '__main__':
         if(i and (chart[i]!=chart[i-1])):
             print "\n"
         print "t: {}\t{}".format(i, chart[i])
-        
