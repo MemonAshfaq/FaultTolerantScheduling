@@ -53,12 +53,16 @@ def RR(tq,plist,n):
             start=1
 
 plist=[]
-plist.append(Process(1,0,5))
-plist.append(Process(2,1,3))
-plist.append(Process(3,3,6))
-plist.append(Process(4,5,1))
-plist.append(Process(5,6,4))
+plist.append(Process(1,0,25))
+plist.append(Process(2,0,5))
+plist.append(Process(3,0,15))
+plist.append(Process(4,0,8))
+plist.append(Process(5,0,10))
 
-RR(3,plist,len(plist))
+RR(4,plist,len(plist))
 
-print chart
+for i in range(len(chart)):
+    if(i and (chart[i]!=chart[i-1])):
+        print "\n"
+    print "t: {}\tT{}".format(i, chart[i])
+    
