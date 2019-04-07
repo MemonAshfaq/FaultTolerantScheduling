@@ -4,12 +4,19 @@ Created on 5 Apr 2019
 @author: aspak.rogatiya
 '''
 import random
-from prime import lcm
 import matplotlib.pyplot as plt
 import numpy as np
 from collections import OrderedDict
+import fractions
 
 missedDeadlines = 0
+
+
+def _lcm(a,b): return abs(a * b) / fractions.gcd(a,b) if a and b else 0
+
+def lcm(a):
+    return reduce(_lcm, a)
+
 #Priority comparison
 def priority_cmp(one, other):
     if one.priority < other.priority:
