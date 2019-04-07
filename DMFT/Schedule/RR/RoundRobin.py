@@ -1,5 +1,11 @@
 
 chart = []
+
+avC=0 #average execution time
+avD=0 #average deadline
+
+tq = 4
+
 class Process:
     def __init__(self,pid,AT,BT,deadline,period,color):
         self.pid = pid
@@ -8,6 +14,13 @@ class Process:
         self.period = period
         self.deadline = deadline
         self.color = color
+        self.sc = 0 #shortness component
+        self.pc = 0 #priority component
+        self.cc = 0 #computed component
+        self.csc = 0 #context switch component
+        self.bcb = 0 #balanced cpu birst
+        self.q = tq #intelligent time slice
+        
         
 def shiftCL(plist):
     temp = plist[0]
@@ -16,15 +29,38 @@ def shiftCL(plist):
     plist[len(plist)-1] = temp
     return plist
 
-def RR(tq,plist,n):
+def RR(plist,n):
     global chart
     queue = []
     time = 0
     ap = 0
     rp = 0
     done = 0
-    q = tq
     start = 0
+    global avC
+    global avD
+    #calculate average execution time
+    for p in plist:
+        avC+=p.burst
+        avD+=p.deadline
+    avC/=n
+    avD/=n
+    print "Average Burst:",avC
+    print "Average Deadline:",avD
+    
+    for p in plist:
+        if p.burst <= avC:
+            p.sc = 1
+        if p.deadline <= avD:
+            p.pc = 1
+        p.cc = tq+p.pc+p.sc
+        p.bcb = p.burst - p.cc
+        if p.bcb < tq:
+            p.csc = p.bcb
+        p.q = tq+p.pc+p.sc+p.csc
+        print "T:{}\tsc:{}\tpc:{}\tcc:{}\tbcb:{}\tcsc:{}\tits:{}".format(p.pid,p.sc,p.pc,p.cc,p.bcb,p.csc,p.q)
+        
+    
     while done < n:
         for i in range(ap,n):
             if time >= plist[i].arrival:
@@ -41,11 +77,11 @@ def RR(tq,plist,n):
             queue = shiftCL(queue)
             
         if queue[0].burst > 0 :
-            if queue[0].burst > q:
-                for _ in range(time, time+q):
+            if queue[0].burst > queue[0].q:
+                for _ in range(time, time+queue[0].q):
                     chart.append(queue[0].pid)
-                time+=q
-                queue[0].burst -= q
+                time+=queue[0].q
+                queue[0].burst -= queue[0].q
             else:
                 for _ in range(time,time+queue[0].burst):
                     chart.append(queue[0].pid)
@@ -72,7 +108,7 @@ if __name__ == '__main__':
     except Exception as exc:
         print "Invalid task file structure. Error: ", exc
 
-    RR(4,task_types,len(task_types))
+    RR(task_types,len(task_types))
     
     for i in range(len(chart)):
         if(i and (chart[i]!=chart[i-1])):
