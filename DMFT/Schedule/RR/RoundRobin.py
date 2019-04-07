@@ -1,3 +1,9 @@
+import fractions
+
+def _lcm(a,b): return abs(a * b) / fractions.gcd(a,b) if a and b else 0
+
+def lcm(a):
+    return reduce(_lcm, a)
 
 chart = []
 
@@ -32,6 +38,7 @@ def shiftCL(plist):
 def RR(plist,n):
     global chart
     queue = []
+    hyperperiod = []
     time = 0
     ap = 0
     rp = 0
@@ -47,6 +54,14 @@ def RR(plist,n):
     avD/=n
     print "Average Burst:",avC
     print "Average Deadline:",avD
+
+    util = 0
+    for p in plist:
+        util += float(p.burst)/float(p.period)
+        hyperperiod.append(p.period)
+    hyperperiod = lcm (hyperperiod)
+    print "hyperperiod:\t{}".format(hyperperiod)
+    print "utilization:\t{}".format(util)
     
     for p in plist:
         if p.burst <= avC:

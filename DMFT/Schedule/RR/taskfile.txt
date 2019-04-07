@@ -1,6 +1,3 @@
-T1	25	30	5	red
-T2	5	10	15	green
-T3	15	18	20	blue
-T4	8	10	15	pink
-T5	10	12	15	purple
-
+T1	3	7	20	red
+T2	2	4	5	green
+T3	2	9	10	blue
