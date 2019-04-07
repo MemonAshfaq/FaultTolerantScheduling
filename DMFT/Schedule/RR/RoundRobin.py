@@ -52,17 +52,26 @@ def RR(tq,plist,n):
                 rp -= 1                
             start=1
 
-plist=[]
-plist.append(Process(1,0,25))
-plist.append(Process(2,0,5))
-plist.append(Process(3,0,15))
-plist.append(Process(4,0,8))
-plist.append(Process(5,0,10))
-
-RR(4,plist,len(plist))
-
-for i in range(len(chart)):
-    if(i and (chart[i]!=chart[i-1])):
-        print "\n"
-    print "t: {}\tT{}".format(i, chart[i])
+if __name__ == '__main__':
+    taskfile = open('taskfile.txt','r')
+    tasklines = taskfile.readlines()
+    task_types = []
     
+    try:
+        for line in tasklines:
+            line = line.split('\t')
+            name = line[0]
+            color = line[4][:-1]
+            for i in range (1,4):
+                line[i] = int(line[i])
+            task_types.append(Process(pid=name, AT=0, BT=line[1]))
+    except Exception as exc:
+        print "Invalid task file structure. Error: ", exc
+
+    RR(4,task_types,len(task_types))
+    
+    for i in range(len(chart)):
+        if(i and (chart[i]!=chart[i-1])):
+            print "\n"
+        print "t: {}\t{}".format(i, chart[i])
+        
