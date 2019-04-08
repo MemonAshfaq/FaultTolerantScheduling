@@ -11,6 +11,9 @@ import fractions
 
 missedDeadlines = 0
 
+IDLE=100
+DEADLINEMISS=500
+USE=1
 
 def _lcm(a,b): return abs(a * b) / fractions.gcd(a,b) if a and b else 0
 
@@ -138,16 +141,16 @@ if __name__ == '__main__':
             if i >= on_cpu.deadline: #missed deadline already
                 print on_cpu.get_unique_name() , " missed the deadline. ",
                 missedDeadlines += 1
-                tt[on_cpu.name][0][i] = 500 #marker for missed deadline
+                tt[on_cpu.name][0][i] = DEADLINEMISS #marker for missed deadline
             else:
-                tt[on_cpu.name][0][i] = 1
+                tt[on_cpu.name][0][i] = USE
             print on_cpu.get_unique_name() , " on CPU. "
             if on_cpu.use(clock_step):
                 tasks.remove(on_cpu)
                 print "Finish!" 
         else:
             print "CPU free."
-            tt[on_cpu.name][0][i] = 100
+            tt[on_cpu.name][0][i] = IDLE
 
     #Print remaining periodic tasks
     for p in tasks:
@@ -165,18 +168,18 @@ if __name__ == '__main__':
             x1 = [x, x+1]
             y1 = np.array([y, y])
             y2 = y1+1
-            if col==1:
+            if col==USE:
                 plt.fill_between(x1, y1, y2=y2, color=color)
                 plt.text(avg(x1[0], x1[1]), avg(y1[0], y2[0]), name, 
                                             horizontalalignment='center',
                                             verticalalignment='center')
-            if col==100:
+            if col==IDLE:
                 plt.fill_between(x1, y1, y2=y2, color='grey')
                 plt.text(avg(x1[0], x1[1]), avg(y1[0], y2[0]), "E", 
                                             horizontalalignment='center',
                                             verticalalignment='center')
                 
-            if col==500:
+            if col==DEADLINEMISS:
                 plt.fill_between(x1, y1, y2=y2, color='yellow')
                 plt.text(avg(x1[0], x1[1]), avg(y1[0], y2[0]), name, 
                                             horizontalalignment='center',

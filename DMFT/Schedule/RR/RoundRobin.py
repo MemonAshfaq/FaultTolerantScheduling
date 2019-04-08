@@ -4,6 +4,9 @@ from collections import OrderedDict
 import matplotlib.pyplot as plt
 import numpy as np
 
+IDLE=100
+DEADLINEMISS=500
+USE=1
 def _lcm(a,b): return abs(a * b) / fractions.gcd(a,b) if a and b else 0
 
 def lcm(a):
@@ -123,13 +126,13 @@ def RR(plist,n):
             if on_cpu.burst > on_cpu.q:
                 for i in range(t, t+on_cpu.q):
                     chart.append(on_cpu.pid)
-                    tt[on_cpu.pid][0][i] = 1
+                    tt[on_cpu.pid][0][i] = USE
                 t+=on_cpu.q
                 on_cpu.burst -= on_cpu.q
             else:
                 for i in range(t,t+on_cpu.burst):
                     chart.append(on_cpu.pid)
-                    tt[on_cpu.pid][0][i] = 1
+                    tt[on_cpu.pid][0][i] = USE
                 t+=on_cpu.burst
                 on_cpu.burst = 0
                 done+=1
@@ -180,18 +183,18 @@ if __name__ == '__main__':
             x1 = [x, x+1]
             y1 = np.array([y, y])
             y2 = y1+1
-            if col==1:
+            if col==USE:
                 plt.fill_between(x1, y1, y2=y2, color=color)
                 plt.text(avg(x1[0], x1[1]), avg(y1[0], y2[0]), name, 
                                             horizontalalignment='center',
                                             verticalalignment='center')
-            if col==100:
+            if col==IDLE:
                 plt.fill_between(x1, y1, y2=y2, color='grey')
                 plt.text(avg(x1[0], x1[1]), avg(y1[0], y2[0]), "E", 
                                             horizontalalignment='center',
                                             verticalalignment='center')
                 
-            if col==500:
+            if col==DEADLINEMISS:
                 plt.fill_between(x1, y1, y2=y2, color='yellow')
                 plt.text(avg(x1[0], x1[1]), avg(y1[0], y2[0]), name, 
                                             horizontalalignment='center',
