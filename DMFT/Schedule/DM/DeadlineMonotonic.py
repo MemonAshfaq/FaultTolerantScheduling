@@ -40,7 +40,7 @@ class TaskIns(object):
         self.usage    = 0
         self.priority = priority
         self.deadline = deadline
-        self.name     = name.replace("\n", "")
+        self.name     = name
         self.id = int(random.random() * 10000)
         self.color = color
 
