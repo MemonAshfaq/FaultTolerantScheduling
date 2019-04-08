@@ -1,4 +1,5 @@
 import fractions
+import time
 
 def _lcm(a,b): return abs(a * b) / fractions.gcd(a,b) if a and b else 0
 
@@ -17,6 +18,7 @@ class Process:
         self.pid = pid
         self.arrival = AT
         self.burst = BT
+        self.bkpburst = BT
         self.period = period
         self.deadline = deadline
         self.color = color
@@ -26,6 +28,8 @@ class Process:
         self.csc = 0 #context switch component
         self.bcb = 0 #balanced cpu birst
         self.q = tq #intelligent time slice
+        self.inst = 0 #number of instances in hyperperiod
+        self.instDone = 0 #number of instances done
         
         
 def shiftCL(plist):
@@ -39,7 +43,7 @@ def RR(plist,n):
     global chart
     queue = []
     hyperperiod = []
-    time = 0
+    t = 0
     ap = 0
     rp = 0
     done = 0
@@ -75,37 +79,44 @@ def RR(plist,n):
         p.q = tq+p.pc+p.sc+p.csc
         print "T:{}\tsc:{}\tpc:{}\tcc:{}\tbcb:{}\tcsc:{}\tits:{}".format(p.pid,p.sc,p.pc,p.cc,p.bcb,p.csc,p.q)
         
+        p.inst = hyperperiod/p.period
     
-    while done < n:
-        for i in range(ap,n):
-            if time >= plist[i].arrival:
-                queue.append(plist[i])
+    while t < hyperperiod:
+        for p in plist:
+            if (t - p.instDone * p.period) >= 0:
+                p.burst = p.bkpburst
+                queue.append(p)
+                p.instDone += 1
                 ap += 1
                 rp += 1
         
         if rp < 1:
             chart.append(0)
-            time += 1
+            t += 1
             continue
         
         if start:
             queue = shiftCL(queue)
+        
+        #pick the first task from queue and put it on cpu
+        on_cpu = queue[0]
             
-        if queue[0].burst > 0 :
-            if queue[0].burst > queue[0].q:
-                for _ in range(time, time+queue[0].q):
-                    chart.append(queue[0].pid)
-                time+=queue[0].q
-                queue[0].burst -= queue[0].q
+        if on_cpu.burst > 0 :
+            if on_cpu.burst > on_cpu.q:
+                for _ in range(t, t+on_cpu.q):
+                    chart.append(on_cpu.pid)
+                t+=on_cpu.q
+                on_cpu.burst -= on_cpu.q
             else:
-                for _ in range(time,time+queue[0].burst):
-                    chart.append(queue[0].pid)
-                time+=queue[0].burst
-                queue[0].burst = 0
+                for _ in range(t,t+on_cpu.burst):
+                    chart.append(on_cpu.pid)
+                t+=on_cpu.burst
+                on_cpu.burst = 0
                 done+=1
                 rp -= 1                
             start=1
-
+        else:
+            queue.remove(on_cpu)
 if __name__ == '__main__':
     taskfile = open('taskfile.txt','r')
     tasklines = taskfile.readlines()
@@ -129,3 +140,5 @@ if __name__ == '__main__':
         if(i and (chart[i]!=chart[i-1])):
             print "\n"
         print "t: {}\t{}".format(i, chart[i])
+
+    print chart
