@@ -26,6 +26,14 @@ util = 0
 tt = OrderedDict()
 missedDeadlines = 0
 
+def print_taskset(tasks):
+    textStr = "Task\tC\tD\tP\n"
+    textStr += "------------------------------\n" 
+    for task in tasks:
+        textStr += str(task)
+    textStr += "------------------------------\n"
+    return textStr
+
 class Process:
     def __init__(self,pid,AT,BT,deadline,period,color):
         self.pid = pid
@@ -43,7 +51,10 @@ class Process:
         self.q = tq #intelligent time slice
         self.inst = 0 #number of instances in hyperperiod
         self.instDone = 0 #number of instances done
-        
+
+    def __str__(self):
+        return self.pid + "\t" + str(self.bkpburst) + "\t" + str(self.deadline) + "\t" + str(self.period) + "\n"
+
         
 def shiftCL(plist):
     temp = plist[0]
@@ -181,9 +192,6 @@ if __name__ == '__main__':
     for item in tt:
         print tt[item]
 
-
-
-
     fig = plt.figure()
     ax = fig.add_subplot(111)
     ax.axes.get_yaxis().set_visible(True)
@@ -233,11 +241,7 @@ if __name__ == '__main__':
      
     textStr = "*** Round-Robin Scheduling ***\n"
     textStr += "--------------------------------------------\n"
-    textStr += "Task:\t(WCET,Deadline,Period)\n"
-    
-    for task in task_types:
-        textStr += "{}:\t({},\t{},\t{})\n".format(task.pid,task.bkpburst,task.deadline,task.period)
-    textStr += "--------------------------------------------\n"
+    textStr += print_taskset(task_types)
     textStr += "U:\t{:.2f}\n".format(util)
     textStr += "Missed Deadlines: {}".format(missedDeadlines)
     textStr = textStr.expandtabs()

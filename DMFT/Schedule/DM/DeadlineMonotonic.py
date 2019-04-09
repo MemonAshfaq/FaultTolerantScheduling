@@ -66,15 +66,15 @@ class TaskType(object):
         self.color = color
         
     def __str__(self):
-        return self.name + "\t" + str(self.c) + "\t" + str(self.d) + "\t" + str(self.p) 
+        return self.name + "\t" + str(self.c) + "\t" + str(self.d) + "\t" + str(self.p) + "\n"
 
 def print_taskset(tasks):
-    print "Task\tc\td\tp"
-    print "--------------------------" 
+    textStr = "Task\tC\tD\tP\n"
+    textStr += "------------------------------\n" 
     for task in tasks:
-        print task
-    print "--------------------------"
-
+        textStr += str(task)
+    textStr += "------------------------------\n"
+    return textStr
 
 def avg(a, b):
     return (a + b) / 2.0
@@ -98,7 +98,7 @@ if __name__ == '__main__':
     except Exception as exc:
         print "Invalid task file structure. Error: ", exc
     
-    print_taskset(task_types)
+    print print_taskset(task_types)
 
     util = 0
     for task in task_types:
@@ -204,12 +204,7 @@ if __name__ == '__main__':
      
     textStr = "*** Deadline Monotonic Scheduling ***\n"
     textStr += "------------------------------------------------------\n"
-    textStr += "Task:(WCET,Deadline,Period)\n"
-    
-    for task in task_types:
-        textStr += "{}:\t({},\t{},\t{})\n".format(task.name,task.c,task.d,task.p)
-    
-    textStr += "------------------------------------------------------\n"
+    textStr += print_taskset(task_types)
     textStr += "U:\t{:.2f}\n".format(util)
     textStr += "Missed Deadlines: {}".format(missedDeadlines)
     textStr = textStr.expandtabs()
