@@ -140,8 +140,10 @@ if __name__ == '__main__':
             on_cpu = possible[0]
             if i >= on_cpu.deadline: #missed deadline already
                 print on_cpu.get_unique_name() , " missed the deadline. ",
-                missedDeadlines += 1
                 tt[on_cpu.name][0][i] = DEADLINEMISS #marker for missed deadline
+                
+                if tt[on_cpu.name][0][i-1] <= USE: # 1 or 0, 1 for used, 0 for not used.
+                    missedDeadlines += 1
             else:
                 tt[on_cpu.name][0][i] = USE
             print on_cpu.get_unique_name() , " on CPU. "
@@ -150,7 +152,7 @@ if __name__ == '__main__':
                 print "Finish!" 
         else:
             print "CPU free."
-            tt[on_cpu.name][0][i] = IDLE
+            #tt[on_cpu.name][0][i] = IDLE
 
     #Print remaining periodic tasks
     for p in tasks:
