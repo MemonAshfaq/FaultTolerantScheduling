@@ -65,6 +65,8 @@ def RR(plist,n):
     global tt
     global hyperperiod 
     global util
+    global missedDeadlines
+    missFlag = False
     #calculate average execution time
     for p in plist:
         avC+=p.burst
@@ -121,23 +123,33 @@ def RR(plist,n):
         
         #pick the first task from queue and put it on cpu
         on_cpu = queue[0]
-            
+        missFlag = False
         if on_cpu.burst > 0 :
             if on_cpu.burst > on_cpu.q:
                 for i in range(t, t+on_cpu.q):
                     chart.append(on_cpu.pid)
-                    tt[on_cpu.pid][0][i] = USE
-                t+=on_cpu.q
+                    if i >= ((on_cpu.instDone - 1) * on_cpu.period + on_cpu.deadline):
+                        tt[on_cpu.pid][0][i] = DEADLINEMISS
+                        missFlag = True
+                    else:
+                        tt[on_cpu.pid][0][i] = USE
                 on_cpu.burst -= on_cpu.q
             else:
                 for i in range(t,t+on_cpu.burst):
                     chart.append(on_cpu.pid)
-                    tt[on_cpu.pid][0][i] = USE
+                    if i >= ((on_cpu.instDone - 1) * on_cpu.period + on_cpu.deadline):
+                        tt[on_cpu.pid][0][i] = DEADLINEMISS
+                        missFlag = True
+                    else:
+                        tt[on_cpu.pid][0][i] = USE
                 t+=on_cpu.burst
                 on_cpu.burst = 0
                 done+=1
-                rp -= 1                
+                rp -= 1
+            if missFlag:                
+                missedDeadlines += 1
             start=1
+            
         else:
             queue.remove(on_cpu)
 
@@ -217,18 +229,21 @@ if __name__ == '__main__':
     plt.xlim(0,hyperperiod)
     plt.ylim(0,len(task_types)+3)
     
-    props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
+    #props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
      
-    textStr = ""
-    for task in task_types:
-        textStr += "{}:({},{},{})  ".format(task.pid,task.bkpburst,task.deadline,task.period)
- 
-    textStr += "U: {:.2f}\n".format(util)
-    textStr += "Missed Deadlines: {}".format(missedDeadlines)
- 
-    # place a text box in upper left in axes coords
-    ax.text(0.05, 0.95, textStr, transform=ax.transAxes, fontsize=8,
-            verticalalignment='top', bbox=props)
+    textStr = "*** Round-Robin Scheduling ***\n"
+    textStr += "--------------------------------------------\n"
+    textStr += "Task:\t(WCET,Deadline,Period)\n"
     
+    for task in task_types:
+        textStr += "{}:\t({},\t{},\t{})\n".format(task.pid,task.bkpburst,task.deadline,task.period)
+    textStr += "--------------------------------------------\n"
+    textStr += "U:\t{:.2f}\n".format(util)
+    textStr += "Missed Deadlines: {}".format(missedDeadlines)
+    textStr = textStr.expandtabs()
+    # place a text box in upper left in axes coords
+    #ax.text(0.05, 0.95, textStr, transform=ax.transAxes, fontsize=8,
+    #        verticalalignment='top', bbox=props)
+    plt.title(textStr,fontdict={'fontsize': 8, 'fontweight': 'medium'},loc='left')
     plt.show()
     #plt.savefig('foo.png', bbox_inches='tight',dpi=500)    

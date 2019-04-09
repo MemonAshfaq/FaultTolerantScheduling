@@ -200,18 +200,21 @@ if __name__ == '__main__':
     plt.xlim(0,hyperperiod)
     plt.ylim(0,len(task_types)+3)
     
-    props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
+    #props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
      
-    textStr = ""
-    for task in task_types:
-        textStr += "{}:({},{},{})  ".format(task.name,task.c,task.d,task.p)
- 
-    textStr += "U: {:.2f}\n".format(util)
-    textStr += "Missed Deadlines: {}".format(missedDeadlines)
- 
-    # place a text box in upper left in axes coords
-    ax.text(0.05, 0.95, textStr, transform=ax.transAxes, fontsize=8,
-            verticalalignment='top', bbox=props)
+    textStr = "*** Deadline Monotonic Scheduling ***\n"
+    textStr += "------------------------------------------------------\n"
+    textStr += "Task:(WCET,Deadline,Period)\n"
     
+    for task in task_types:
+        textStr += "{}:\t({},\t{},\t{})\n".format(task.name,task.c,task.d,task.p)
+    
+    textStr += "------------------------------------------------------\n"
+    textStr += "U:\t{:.2f}\n".format(util)
+    textStr += "Missed Deadlines: {}".format(missedDeadlines)
+    textStr = textStr.expandtabs()
+    # place a text box in upper left in axes coords
+    #ax.text(0.05, 0.95, textStr, transform=ax.transAxes, fontsize=8,
+    #        verticalalignment='top', bbox=props)
+    plt.title(textStr,fontdict={'fontsize': 8, 'fontweight': 'medium'},loc='left')
     plt.show()
-    #plt.savefig('foo.png', bbox_inches='tight',dpi=500)    
