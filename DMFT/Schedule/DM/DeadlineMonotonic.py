@@ -152,7 +152,7 @@ if __name__ == '__main__':
                 print "Finish!" 
         else:
             print "CPU free."
-            tt[on_cpu.name][0][i] = IDLE
+            #tt[on_cpu.name][0][i] = IDLE
 
     #Print remaining periodic tasks
     for p in tasks:
