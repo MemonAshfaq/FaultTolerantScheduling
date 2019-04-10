@@ -49,7 +49,6 @@ class Task:
 """
 Global variables
 """
-#chart = []
 avC=0 #average execution time
 avD=0 #average D
 tq = 4 #original time quantum
@@ -86,7 +85,7 @@ def shiftLeftQueue(taskList):
     taskList[len(taskList)-1] = temp
     return taskList
 
-def RR(taskList):
+def RoundRobin(taskList):
     """
     Implementation of Round-Robin function.
     """
@@ -94,7 +93,6 @@ def RR(taskList):
     # Local and global variable declarations
     #===========================================================================
     n = len(taskList) # Number of tasks in task list
-    #global chart
     queue = []
     time = 0
     rp = 0
@@ -175,7 +173,6 @@ def RR(taskList):
         
         # No remaining processes.. CPU is idle.
         if rp < 1:
-            #chart.append(0)
             time += 1
             continue
         
@@ -194,7 +191,6 @@ def RR(taskList):
                 # Yes it is. Execute for the assigned time quantum and put the remaining at
                 # the end of queue.
                 for i in range(time, time+on_cpu.q):
-                    #chart.append(on_cpu.name)
                     #Is the deadline missed already?
                     if i >= ((on_cpu.instDone - 1) * on_cpu.P + on_cpu.D):
                         # yes, mark this time instance as "missed deadline" on the time table
@@ -207,7 +203,6 @@ def RR(taskList):
             else:
                 # No, time quantum is sufficient for this task. Just execute it and get rid of it from the queue.
                 for i in range(time,time+on_cpu.C):
-                    #chart.append(on_cpu.name)
                     # Is the deadline missed already?
                     if i >= ((on_cpu.instDone - 1) * on_cpu.P + on_cpu.D):
                         # yes, this time instance as "missed deadline" on the time table
@@ -254,16 +249,8 @@ if __name__ == '__main__':
         print "expected task structure as: ", "Task\tC\tD\tP\n"
 
     #Schedule this task list in round-robin fashion
-    RR(taskList)
+    RoundRobin(taskList)
     
-    #===============================================================================
-    #     for i in range(len(chart)):
-    #         if(i and (chart[i]!=chart[i-1])):
-    #             print "\n"
-    #         print "t: {}\t{}".format(i, chart[i])
-    # 
-    #     print chart
-    #===============================================================================
     for item in tt:
         print tt[item]
 
