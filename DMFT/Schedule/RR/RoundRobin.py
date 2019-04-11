@@ -71,7 +71,7 @@ def lcm(a):
 def avg(a, b):
     return (a + b) / 2.0
 
-def print_taskset(tasks):
+def task_table(tasks):
     textStr = "Task\tC\tD\tP\n"
     textStr += "------------------------------\n" 
     for task in tasks:
@@ -262,27 +262,33 @@ if __name__ == '__main__':
     ax.set_aspect(2.5)
 
     # Major ticks every 2, minor ticks every 1
-    major_ticks = np.arange(0, hyperperiod+1, 2)
-    minor_ticks = np.arange(0, hyperperiod+1, 1)
+    major_xticks = np.arange(0, hyperperiod+1, 2)
+    minor_xticks = np.arange(0, hyperperiod+1, 1)
     
-    ax.set_xticks(major_ticks)
-    ax.set_xticks(minor_ticks, minor=True)
+    ax.set_xticks(major_xticks)
+    ax.set_xticks(minor_xticks, minor=True)
+
+    ylabels = ['']
+    for t in taskList:
+        ylabels.append(t.name)
+
+    major_yticks = np.arange(0, len(taskList)+1, 1)
+    ax.set_yticks(major_yticks)
     
-    # Or if you want different settings for the grids:
+    ax.set_yticklabels(ylabels,minor=False,rotation=45)
     ax.grid(which='minor', alpha=0.2)
-    ax.grid(which='major', alpha=0.5)    
+    ax.grid(which='major', alpha=0.5)
     
     for y, (name,(row,color)) in enumerate(tt.items()):
         #Traverse through the hyperperiod. Mark deadline and period of each task with arrows.
-        clock_step = 1
-        for task in taskList:
-            for i in xrange(0,hyperperiod+1,clock_step):
+        for j,task in enumerate(taskList):
+            for i in xrange(0,hyperperiod+1,1):
                 if (i % task.P == task.D) and (i > 0):
-                    ax.annotate("",xy=(i,int(task.name[1])-1),xycoords= 'data',xytext=(i,int(task.name[1])),textcoords='data',
-                        arrowprops=dict(arrowstyle='simple',color='orange'))
+                    ax.annotate("",xy=(i,j),xycoords= 'data',xytext=(i,j+1),textcoords='data',
+                        arrowprops=dict(arrowstyle='->',color='orange'))
                 if (i % task.P == 0):
-                    ax.annotate("",xy=(i,int(task.name[1])),xycoords= 'data',xytext=(i,int(task.name[1])-1),textcoords='data',
-                        arrowprops=dict(arrowstyle='fancy'))
+                    ax.annotate("",xy=(i,j+1),xycoords= 'data',xytext=(i,j),textcoords='data',
+                        arrowprops=dict(arrowstyle='->',color='blue'))
 
         for x, col in enumerate(row):
             x1 = [x, x+1]
@@ -290,23 +296,24 @@ if __name__ == '__main__':
             y2 = y1+1
             if col==USE:
                 plt.fill_between(x1, y1, y2=y2, color=color)
-                plt.text(avg(x1[0], x1[1]), avg(y1[0], y2[0]), name, 
+                plt.text(avg(x1[0], x1[1]), avg(y1[0], y2[0]), s='', 
                                             horizontalalignment='center',
                                             verticalalignment='center')
                 
             if col==DEADLINEMISS:
                 plt.fill_between(x1, y1, y2=y2, color='red')
-                plt.text(avg(x1[0], x1[1]), avg(y1[0], y2[0]), name, 
+                plt.text(avg(x1[0], x1[1]), avg(y1[0], y2[0]), s='', 
                                             horizontalalignment='center',
                                             verticalalignment='center')
                 
 
+
     plt.xlim(0,hyperperiod)
     plt.ylim(0,len(taskList))
-    
-    textStr = "*** Round-Robin Scheduling ***\n"
-    textStr += "--------------------------------------------\n"
-    textStr += print_taskset(taskList)
+         
+    textStr = "*** Deadline Monotonic Scheduling ***\n"
+    textStr += "------------------------------------------------------\n"
+    textStr += task_table(taskList)
     textStr += "U:\t{:.2f}\n".format(util)
     textStr += "Missed Deadlines: {}".format(missedDeadlines)
     textStr = textStr.expandtabs()
