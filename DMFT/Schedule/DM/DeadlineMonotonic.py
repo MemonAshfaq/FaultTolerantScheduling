@@ -251,7 +251,7 @@ if __name__ == '__main__':
             for i in xrange(0,hyperperiod+1,clock_step):
                 if (i % task.P == task.D) and (i > 0):
                     ax.annotate("",xy=(i,int(task.name[1])-1),xycoords= 'data',xytext=(i,int(task.name[1])),textcoords='data',
-                        arrowprops=dict(arrowstyle='simple',color='r'))
+                        arrowprops=dict(arrowstyle='simple',color='orange'))
                 if (i % task.P == 0):
                     ax.annotate("",xy=(i,int(task.name[1])),xycoords= 'data',xytext=(i,int(task.name[1])-1),textcoords='data',
                         arrowprops=dict(arrowstyle='fancy'))        
@@ -267,7 +267,7 @@ if __name__ == '__main__':
                                             verticalalignment='center')
                 
             if col==DEADLINEMISS:
-                plt.fill_between(x1, y1, y2=y2, color='yellow')
+                plt.fill_between(x1, y1, y2=y2, color='red')
                 plt.text(avg(x1[0], x1[1]), avg(y1[0], y2[0]), name, 
                                             horizontalalignment='center',
                                             verticalalignment='center')
