@@ -1,4 +1,4 @@
-'''
+"""
 NUS - EE5903 - Real Time Systems
 
 Author - Aspak Rogatiya (A0179741U)
@@ -10,11 +10,12 @@ Task Model:
         All task start to arrive at time 0.
 Fault Model:
         MTTF
-'''
+"""
 
-"""
-Imports
-"""
+#===============================================================================
+# Imports
+#===============================================================================
+
 import fractions
 from collections import OrderedDict
 import matplotlib.pyplot as plt
@@ -23,9 +24,9 @@ import numpy as np
 DEADLINEMISS=500
 USE=1
 
-"""
-A Task class.
-"""
+#===============================================================================
+# A Task class.
+#===============================================================================
 class Task:
     def __init__(self,name,C,D,P,color):
         self.name = name
@@ -46,9 +47,9 @@ class Task:
     def __str__(self):
         return self.name + "\t" + str(self.bkpC) + "\t" + str(self.D) + "\t" + str(self.P) + "\n"
 
-"""
-Global variables
-"""
+#===============================================================================
+# Global variables
+#===============================================================================
 avC=0 #average execution time
 avD=0 #average D
 tq = 4 #original time quantum
@@ -58,9 +59,9 @@ tt = OrderedDict() # Time table.
 missedDeadlines = 0 # Number of deadlines missed during this simulation
 
 
-"""
-Useful function definitions
-"""
+#===============================================================================
+# Useful function definitions
+#===============================================================================
 def _lcm(a,b): 
     return abs(a * b) / fractions.gcd(a,b) if a and b else 0
 
@@ -272,14 +273,13 @@ if __name__ == '__main__':
     ax.grid(which='major', alpha=0.5)    
     
     for y, (name,(row,color)) in enumerate(tt.items()):
-
         #Traverse through the hyperperiod. Mark deadline and period of each task with arrows.
         clock_step = 1
         for task in taskList:
             for i in xrange(0,hyperperiod+1,clock_step):
                 if (i % task.P == task.D) and (i > 0):
                     ax.annotate("",xy=(i,int(task.name[1])-1),xycoords= 'data',xytext=(i,int(task.name[1])),textcoords='data',
-                        arrowprops=dict(arrowstyle='simple'))
+                        arrowprops=dict(arrowstyle='simple',color='r'))
                 if (i % task.P == 0):
                     ax.annotate("",xy=(i,int(task.name[1])),xycoords= 'data',xytext=(i,int(task.name[1])-1),textcoords='data',
                         arrowprops=dict(arrowstyle='fancy'))

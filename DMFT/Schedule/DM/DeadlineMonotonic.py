@@ -1,74 +1,117 @@
-'''
-Created on 5 Apr 2019
+"""
+NUS - EE5903 - Real Time Systems
 
-@author: aspak.rogatiya
-'''
+Author - Aspak Rogatiya (A0179741U)
+
+Simulation: Round Robin Algorithm with Fault Tolerance
+
+Task Model:
+        Periodic (WCET <= Deadline <= Period)
+        All task start to arrive at time 0.
+Fault Model:
+        MTTF
+"""
+#===============================================================================
+# Imports
+#===============================================================================
 import random
 import matplotlib.pyplot as plt
 import numpy as np
 from collections import OrderedDict
 import fractions
 
-missedDeadlines = 0
-
-IDLE=100
+#===============================================================================
+# Global variable and MACROs
+#===============================================================================
 DEADLINEMISS=500
 USE=1
+missedDeadlines = 0
 
-def _lcm(a,b): return abs(a * b) / fractions.gcd(a,b) if a and b else 0
+#===============================================================================
+# Few useful function definitions
+#===============================================================================
+def _lcm(a,b):
+    '''
+    returns an LCM of two numbers a and b
+    '''
+    return abs(a * b) / fractions.gcd(a,b) if a and b else 0
 
 def lcm(a):
+    '''
+    returns an LCM of list a
+    '''
     return reduce(_lcm, a)
 
-#Priority comparison
 def priority_cmp(one, other):
+    '''
+    function to compare priorities of two tasks
+    '''
     if one.priority < other.priority:
         return -1
     elif one.priority > other.priority:
         return 1
     return 0
 
-#Deadline monotonic comparison
 def tasktype_cmp(self, other):
-    if self.deadline < other.deadline:
+    '''
+    function to compare deadlines of two tasks
+    '''    
+    if self.D < other.D:
         return -1
-    if self.deadline > other.deadline:
+    if self.D > other.D:
         return 1
     return 0
 
+#===============================================================================
+# A task instance
+#===============================================================================
 class TaskIns(object):
-    def __init__(self, start, end, priority, deadline, name,color):
-        self.start    = start
-        self.end      = end
-        self.usage    = 0
-        self.priority = priority
-        self.deadline = deadline
-        self.name     = name
-        self.id = int(random.random() * 10000)
-        self.color = color
+    '''
+    A schedulable task instance
+    '''
+    def __init__(self, start, end, priority, D, name,color):
+        self.start    = start #start time
+        self.end      = end #finish time
+        self.usage    = 0 #CPU time utilized by this task
+        self.priority = priority #priority of this task compared to other task in taskset
+        self.D = D #deadline of this task
+        self.name     = name #Name given to this task. e.g. "T1"
+        self.id = int(random.random() * 10000) #A random PID for each task
+        self.color = color #Color to represent this task on plot
 
     def use(self, usage):
+        '''
+        Use CPU for "usage" time instances
+        '''
         self.usage += usage
         if self.usage >= self.end - self.start:
             return True
         return False
 
-    #Get name as Name#id
     def get_unique_name(self):
+        '''
+        Get name as name#id
+        '''
         return str(self.name) + "#" + str(self.id)
     
 class TaskType(object):
-    def __init__(self, name, execution, deadline, period,color):
-        self.name = name
-        self.c  = execution
-        self.d  = deadline
-        self.p  = period
-        self.color = color
+    '''
+    A generic task which has properties such as execution time, deadline and period.
+    '''
+    def __init__(self, name, C, D, P,color):
+        self.name = name #Unique name e.g. T1
+        self.C  = C #WCET
+        self.D  = D #deadline
+        self.P  = P #period
+        self.color = color #color to represent this task on the plot
         
     def __str__(self):
-        return self.name + "\t" + str(self.c) + "\t" + str(self.d) + "\t" + str(self.p) + "\n"
+        return self.name + "\t" + str(self.C) + "\t" + str(self.D) + "\t" + str(self.P) + "\n"
 
-def print_taskset(tasks):
+def task_table(tasks):
+    '''
+    Function to print the task list in decorative manner.
+    '''
     textStr = "Task\tC\tD\tP\n"
     textStr += "------------------------------\n" 
     for task in tasks:
@@ -77,95 +120,142 @@ def print_taskset(tasks):
     return textStr
 
 def avg(a, b):
+    '''
+    Function to calculate an average of two numbers a and b
+    '''
     return (a + b) / 2.0
 
+#===============================================================================
+# main entry point
+#===============================================================================
 if __name__ == '__main__':
-    taskfile = open('taskfile.txt','r')
-    tasklines = taskfile.readlines()
-    task_types = []
+
+    #declare necessary local variables
+    taskList = []
     hyperperiod = []
     tasks = []
+
+    #open taskfile.txt to read the list of tasks
+    taskfile = open('taskfile.txt','r')
+    tasklines = taskfile.readlines()
     
+    #read taskfile line by line. Each line represents a task. Extract name, WCET, deadline, period and color from each line 
     try:
         for line in tasklines:
             line = line.split('\t')
             name = line[0]
             color = line[4][:-1]
-            for i in range (1,4):
-                line[i] = int(line[i])
-            task_types.append(TaskType(name=name, execution=line[1], deadline=line[2], period=line[3],color=color))
+            C=int(line[1]) #WCET
+            D=int(line[2]) #deadline
+            P=int(line[3]) #period
+            taskList.append(TaskType(name=name, C=C, D=D, P=P,color=color))
 
     except Exception as exc:
         print "Invalid task file structure. Error: ", exc
+        print "Task set should look like: Task\tC\tD\tP\tcolor\n"
     
-    print print_taskset(task_types)
-
+    print task_table(taskList)
+    
+    #===========================================================================
+    # Calculate hyperperiod and utilization for given taskset
+    #===========================================================================
     util = 0
-    for task in task_types:
-        util += float(task.c)/float(task.p)
-        hyperperiod.append(task.p)
+    for task in taskList:
+        util += float(task.C)/float(task.P)
+        hyperperiod.append(task.P)
     hyperperiod = lcm (hyperperiod)
     print "hyperperiod:\t{}".format(hyperperiod)
     print "utilization:\t{}".format(util)
 
     if util > 1:
         print "Taskset is not schedulable! utilization: {}".format(util)
-    tt = OrderedDict()
-    for i in range(len(task_types)):
-        tt[task_types[i].name] = [[0]*hyperperiod,task_types[i].color]
 
-    #Create task instances
+    #===========================================================================
+    # We will create a hyperperiod x n size dictionary (tt) for time table. Each 
+    # entry represents if the CPU was used by this task at that instance. If yes, 
+    # mark it with 1 (USE) Flag. If deadline missed, mark that instance with 500 
+    # (DEADLINEMISS) flag. 
+    #===========================================================================
+    
+    #initialize all time entries in the time table with 0. 
+    tt = OrderedDict()
+    for i in range(len(taskList)):
+        tt[taskList[i].name] = [[0]*hyperperiod,taskList[i].color]
+
+    #Traverse through hyperperiod and find out all eligible task at each instance. Append each
+    #task in a list. We will pick the task with shortest deadline at each instance and put
+    #it on CPU when it is time to schedule.
     for i in xrange(0, hyperperiod):
-        for task_type in task_types:
-            if  i  % task_type.p == 0:
+        for task_type in taskList:
+            if  i  % task_type.P == 0:
                 start = i
-                end = start + task_type.c
-                priority = task_type.d
-                deadline = start + task_type.d
-                tasks.append(TaskIns(start=start, end=end, priority=priority, deadline=deadline, name=task_type.name,color=task_type.color))    
+                end = start + task_type.C
+                priority = task_type.D
+                D = start + task_type.D
+                tasks.append(TaskIns(start=start, end=end, priority=priority, D=D, name=task_type.name,color=task_type.color))    
     
-    
+    #Simulate a clock
     clock_step = 1
     for i in xrange(0, hyperperiod, clock_step):
         print "t:",i,":\t",
-        #Fetch possible tasks that can use cpu and sort by priority
+        #Fetch possible tasks that can use CPU and sort them by priority
         possible = []
         for t in tasks:
             if t.start <= i:
                 possible.append(t)
         possible = sorted(possible, priority_cmp)
 
-        #Select task with highest priority
+        #Select task with highest priority (shortest deadline)
         if len(possible) > 0:
             on_cpu = possible[0]
-            if i >= on_cpu.deadline: #missed deadline already
+            if i >= on_cpu.D: #missed a deadline already
                 print on_cpu.get_unique_name() , " missed the deadline. ",
                 tt[on_cpu.name][0][i] = DEADLINEMISS #marker for missed deadline
                 
-                if tt[on_cpu.name][0][i-1] <= USE: # 1 or 0, 1 for used, 0 for not used.
+                if tt[on_cpu.name][0][i-1] <= USE: # 1 or 0, 1 for USE, 0 for IDLE.
                     missedDeadlines += 1
             else:
                 tt[on_cpu.name][0][i] = USE
-            print on_cpu.get_unique_name() , " on CPU. "
+            print on_cpu.get_unique_name() , " on CPU."
+            #Is this task finished?
             if on_cpu.use(clock_step):
+                # Yes, remove it from list
                 tasks.remove(on_cpu)
                 print "Finish!" 
         else:
             print "CPU free."
-            #tt[on_cpu.name][0][i] = IDLE
-
-    #Print remaining periodic tasks
-    for p in tasks:
-        print p.get_unique_name() + " is dropped due to overload at time: " + str(i)
 
 
+    #===========================================================================
+    # Scheduling is completed. Now, plot the time table.
+    #===========================================================================
+    #plot properties
     fig = plt.figure()
     ax = fig.add_subplot(111)
-    ax.axes.get_yaxis().set_visible(True)
-    ax.set_aspect(1)
-    plt.grid(False)
+    ax.set_aspect(2.5)
+
+    # Major ticks every 2, minor ticks every 1
+    major_ticks = np.arange(0, hyperperiod+1, 2)
+    minor_ticks = np.arange(0, hyperperiod+1, 1)
+    
+    ax.set_xticks(major_ticks)
+    ax.set_xticks(minor_ticks, minor=True)
+    
+    # Or if you want different settings for the grids:
+    ax.grid(which='minor', alpha=0.2)
+    ax.grid(which='major', alpha=0.5)    
     
     for y, (name,(row,color)) in enumerate(tt.items()):
+        #Traverse through the hyperperiod. Mark deadline and period of each task with arrows.
+        for task in taskList:
+            for i in xrange(0,hyperperiod+1,clock_step):
+                if (i % task.P == task.D) and (i > 0):
+                    ax.annotate("",xy=(i,int(task.name[1])-1),xycoords= 'data',xytext=(i,int(task.name[1])),textcoords='data',
+                        arrowprops=dict(arrowstyle='simple',color='r'))
+                if (i % task.P == 0):
+                    ax.annotate("",xy=(i,int(task.name[1])),xycoords= 'data',xytext=(i,int(task.name[1])-1),textcoords='data',
+                        arrowprops=dict(arrowstyle='fancy'))        
+        
         for x, col in enumerate(row):
             x1 = [x, x+1]
             y1 = np.array([y, y])
@@ -175,11 +265,6 @@ if __name__ == '__main__':
                 plt.text(avg(x1[0], x1[1]), avg(y1[0], y2[0]), name, 
                                             horizontalalignment='center',
                                             verticalalignment='center')
-            if col==IDLE:
-                plt.fill_between(x1, y1, y2=y2, color='grey')
-                plt.text(avg(x1[0], x1[1]), avg(y1[0], y2[0]), "E", 
-                                            horizontalalignment='center',
-                                            verticalalignment='center')
                 
             if col==DEADLINEMISS:
                 plt.fill_between(x1, y1, y2=y2, color='yellow')
@@ -187,31 +272,16 @@ if __name__ == '__main__':
                                             horizontalalignment='center',
                                             verticalalignment='center')
                 
-        #mark deadlines and periods
-        for task in task_types:
-            for i in xrange(0,hyperperiod+1,clock_step):
-                if (i % task.p == task.d) and (i > 0):
-                    ax.annotate("",xy=(i,int(task.name[1])-1),xycoords= 'data',xytext=(i,int(task.name[1])),textcoords='data',
-                        arrowprops=dict(arrowstyle='simple'))
-                if (i % task.p == 0):
-                    ax.annotate("",xy=(i,int(task.name[1])),xycoords= 'data',xytext=(i,int(task.name[1])-1),textcoords='data',
-                        arrowprops=dict(arrowstyle='fancy'))
 
-    plt.xticks(np.arange(0,hyperperiod+1,2))
-    plt.yticks(np.arange(0,len(task_types)+1))
+
     plt.xlim(0,hyperperiod)
-    plt.ylim(0,len(task_types)+3)
-    
-    #props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
-     
+    plt.ylim(0,len(taskList))
+         
     textStr = "*** Deadline Monotonic Scheduling ***\n"
     textStr += "------------------------------------------------------\n"
-    textStr += print_taskset(task_types)
+    textStr += task_table(taskList)
     textStr += "U:\t{:.2f}\n".format(util)
     textStr += "Missed Deadlines: {}".format(missedDeadlines)
     textStr = textStr.expandtabs()
-    # place a text box in upper left in axes coords
-    #ax.text(0.05, 0.95, textStr, transform=ax.transAxes, fontsize=8,
-    #        verticalalignment='top', bbox=props)
     plt.title(textStr,fontdict={'fontsize': 8, 'fontweight': 'medium'},loc='left')
     plt.show()
