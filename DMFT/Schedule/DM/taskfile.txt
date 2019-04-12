@@ -1,3 +1,11 @@
-T1	3	7	20	green
-T2	2	4	5	green
-T3	2	9	10	green
+T1	3	30	20	green
+T2	5	50	20	green
+T3	3	30	40	green
+T4	5	50	40	green
+T5	5	50	80	green
+T6	2	20	80	green
+T7	5	50	160	green
+T8	5	50	160	green
+T9	3	30	160	green
+T9	3	30	320	green
+

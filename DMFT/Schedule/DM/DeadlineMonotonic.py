@@ -19,15 +19,19 @@ import matplotlib.pyplot as plt
 import numpy as np
 from collections import OrderedDict
 import fractions
+import random
+#===============================================================================
+# Global variable and Constants
+#===============================================================================
+DEADLINEMISS_MARKER =   500
+CPU_USAGE_MARKER    =   1
+FAULT_MARKER        =   100
+MTTF                =   50
+RUNTIME             =   1000
+FAULT_TOLERANCE     =   False
 
-#===============================================================================
-# Global variable and MACROs
-#===============================================================================
-DEADLINEMISS=500
-USE=1
 missedDeadlines = 0
 
-RUNTIME=50
 #===============================================================================
 # Few useful function definitions
 #===============================================================================
@@ -169,8 +173,8 @@ if __name__ == '__main__':
     #===========================================================================
     # We will create a hyperperiod x n size dictionary (tt) for time table. Each 
     # entry represents if the CPU was used by this task at that instance. If yes, 
-    # mark it with 1 (USE) Flag. If deadline missed, mark that instance with 500 
-    # (DEADLINEMISS) flag. 
+    # mark it with 1 (CPU_USAGE_MARKER) Flag. If deadline missed, mark that instance with 500 
+    # (DEADLINEMISS_MARKER) flag. 
     #===========================================================================
     
     #initialize all time entries in the time table with 0. 
@@ -190,6 +194,12 @@ if __name__ == '__main__':
                 D = start + task_type.D
                 tasks.append(TaskIns(start=start, end=end, priority=priority, D=D, name=task_type.name,color=task_type.color))    
     
+    faults = []
+    if FAULT_TOLERANCE:
+        for i in xrange(0,RUNTIME):
+            if i % MTTF == 0:
+                faults.append(random.randint(i,i+MTTF-1))
+
     #Simulate a clock
     clock_step = 1
     for i in xrange(0, RUNTIME, clock_step):
@@ -202,15 +212,20 @@ if __name__ == '__main__':
         possible = sorted(possible, priority_cmp)
 
         #Select task with highest priority (shortest deadline)
+        
         if len(possible) > 0:
             on_cpu = possible[0]
+            if i in faults:
+                tt[on_cpu.name][0][i] = FAULT_MARKER
+                possible[0].usage = 0
+                continue
             if i >= on_cpu.D: #missed a deadline already
                 print on_cpu.name, " missed the deadline!"
-                tt[on_cpu.name][0][i] = DEADLINEMISS #marker for missed deadline
-                if tt[on_cpu.name][0][i-1] <= USE: # 1 or 0, 1 for USE, 0 for IDLE.
+                tt[on_cpu.name][0][i] = DEADLINEMISS_MARKER #marker for missed deadline
+                if tt[on_cpu.name][0][i-1] <= CPU_USAGE_MARKER: # 1 or 0, 1 for USE, 0 for IDLE.
                     missedDeadlines += 1
             else:
-                tt[on_cpu.name][0][i] = USE
+                tt[on_cpu.name][0][i] = CPU_USAGE_MARKER
             print on_cpu.name , " is on CPU."
             #Is this task finished?
             if on_cpu.use(clock_step):
@@ -219,7 +234,6 @@ if __name__ == '__main__':
                 print "Finish!" 
         else:
             print "CPU free."
-
 
     #===========================================================================
     # Scheduling is completed. Now, plot the time table.
@@ -262,18 +276,23 @@ if __name__ == '__main__':
             x1 = [x, x+1]
             y1 = np.array([y, y])
             y2 = y1+1
-            if col==USE:
+            if col==CPU_USAGE_MARKER:
                 plt.fill_between(x1, y1, y2=y2, color=color)
                 plt.text(avg(x1[0], x1[1]), avg(y1[0], y2[0]), s='', 
                                             horizontalalignment='center',
                                             verticalalignment='center')
                 
-            if col==DEADLINEMISS:
+            if col==DEADLINEMISS_MARKER:
                 plt.fill_between(x1, y1, y2=y2, color='red')
                 plt.text(avg(x1[0], x1[1]), avg(y1[0], y2[0]), s='', 
                                             horizontalalignment='center',
                                             verticalalignment='center')
                 
+            if col==FAULT_MARKER:
+                plt.fill_between(x1, y1, y2=y2, color='yellow')
+                plt.text(avg(x1[0], x1[1]), avg(y1[0], y2[0]), s='', 
+                                            horizontalalignment='center',
+                                            verticalalignment='center')
 
 
     plt.xlim(0,RUNTIME)
