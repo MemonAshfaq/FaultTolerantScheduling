@@ -165,7 +165,7 @@ if __name__ == '__main__':
         hyperperiod.append(task.P)
     hyperperiod = lcm (hyperperiod)
     print "hyperperiod:\t{}".format(hyperperiod)
-    print "utilization:\t{}".format(util)
+    print "utilization:\t{:.2f}".format(util)
 
     if util > 1:
         print "Taskset is not schedulable! utilization: {}".format(util)
@@ -209,14 +209,13 @@ if __name__ == '__main__':
         if len(possible) > 0:
             on_cpu = possible[0]
             if i >= on_cpu.D: #missed a deadline already
-                print on_cpu.get_unique_name() , " missed the deadline. ",
+                print on_cpu.name, " missed the deadline!"
                 tt[on_cpu.name][0][i] = DEADLINEMISS #marker for missed deadline
-                
                 if tt[on_cpu.name][0][i-1] <= USE: # 1 or 0, 1 for USE, 0 for IDLE.
                     missedDeadlines += 1
             else:
                 tt[on_cpu.name][0][i] = USE
-            print on_cpu.get_unique_name() , " on CPU."
+            print on_cpu.name , " is on CPU."
             #Is this task finished?
             if on_cpu.use(clock_step):
                 # Yes, remove it from list
@@ -232,23 +231,23 @@ if __name__ == '__main__':
     #plot properties
     fig = plt.figure()
     ax = fig.add_subplot(111)
-    ax.set_aspect(2.5)
+    ax.set_aspect('auto')
 
     # Major ticks every 2, minor ticks every 1
-    major_xticks = np.arange(0, hyperperiod+1, 2)
+    major_xticks = np.arange(0, hyperperiod+1, hyperperiod/10)
     minor_xticks = np.arange(0, hyperperiod+1, 1)
     
     ax.set_xticks(major_xticks)
     ax.set_xticks(minor_xticks, minor=True)
 
-    ylabels = ['']
+    ylabels = ['Task (C,D,P)']
     for t in taskList:
-        ylabels.append(t.name)
+        ylabels.append(t.name + " (" + str(t.C) + "," + str(t.D) + "," + str(t.P)+ ")" )
 
     major_yticks = np.arange(0, len(taskList)+1, 1)
     ax.set_yticks(major_yticks)
     
-    ax.set_yticklabels(ylabels,minor=False,rotation=45)
+    ax.set_yticklabels(ylabels,minor=False,rotation=15)
     ax.grid(which='minor', alpha=0.2)
     ax.grid(which='major', alpha=0.5)
     
@@ -286,9 +285,9 @@ if __name__ == '__main__':
          
     textStr = "*** Deadline Monotonic Scheduling ***\n"
     textStr += "------------------------------------------------------\n"
-    textStr += task_table(taskList)
+    #textStr += task_table(taskList)
     textStr += "U:\t{:.2f}\n".format(util)
     textStr += "Missed Deadlines: {}".format(missedDeadlines)
     textStr = textStr.expandtabs()
-    plt.title(textStr,fontdict={'fontsize': 8, 'fontweight': 'medium'},loc='left')
+    plt.title(textStr,fontdict={'fontsize': 12, 'fontweight': 'medium'},loc='left')
     plt.show()

@@ -126,7 +126,7 @@ def RoundRobin(taskList):
         hyperperiod.append(t.P)
     hyperperiod = lcm (hyperperiod)
     print "Hyperperiod:\t{}".format(hyperperiod)
-    print "Utilization:\t{}".format(util)
+    print "Utilization:\t{:.2f}".format(util)
     
     #===========================================================================
     # Calculate Intelligent Time Slice (ITS) for Round Robin to avoid very
@@ -196,6 +196,7 @@ def RoundRobin(taskList):
                     if i >= ((on_cpu.instDone - 1) * on_cpu.P + on_cpu.D):
                         # yes, mark this time instance as "missed deadline" on the time table
                         tt[on_cpu.name][0][i] = DEADLINEMISS
+                        print "time:",i ," ", on_cpu.name, " missed the deadline!"
                         missFlag = True
                     else:
                         # No. We did it before deadline. Mark this time instance as a "success" on time table
@@ -208,6 +209,7 @@ def RoundRobin(taskList):
                     if i >= ((on_cpu.instDone - 1) * on_cpu.P + on_cpu.D):
                         # yes, this time instance as "missed deadline" on the time table
                         tt[on_cpu.name][0][i] = DEADLINEMISS
+                        print "time:",i ," ", on_cpu.name, " missed the deadline!"
                         missFlag = True
                     else:
                         # No. We did it before deadline. Mark this time instance as a "success" on time table
@@ -252,30 +254,32 @@ if __name__ == '__main__':
     #Schedule this task list in round-robin fashion
     RoundRobin(taskList)
     
-    for item in tt:
-        print tt[item]
+    #===========================================================================
+    # for item in tt:
+    #     print tt[item]
+    #===========================================================================
 
     
     #plot properties
     fig = plt.figure()
     ax = fig.add_subplot(111)
-    ax.set_aspect(2.5)
+    ax.set_aspect('auto')
 
     # Major ticks every 2, minor ticks every 1
-    major_xticks = np.arange(0, hyperperiod+1, 2)
+    major_xticks = np.arange(0, hyperperiod+1, hyperperiod/10)
     minor_xticks = np.arange(0, hyperperiod+1, 1)
     
     ax.set_xticks(major_xticks)
     ax.set_xticks(minor_xticks, minor=True)
 
-    ylabels = ['']
+    ylabels = ['Task (C,D,P)']
     for t in taskList:
-        ylabels.append(t.name)
+        ylabels.append(t.name + " (" + str(t.bkpC) + "," + str(t.D) + "," + str(t.P)+ ")" )
 
     major_yticks = np.arange(0, len(taskList)+1, 1)
     ax.set_yticks(major_yticks)
     
-    ax.set_yticklabels(ylabels,minor=False,rotation=45)
+    ax.set_yticklabels(ylabels,minor=False,rotation=15)
     ax.grid(which='minor', alpha=0.2)
     ax.grid(which='major', alpha=0.5)
     
@@ -311,11 +315,11 @@ if __name__ == '__main__':
     plt.xlim(0,hyperperiod)
     plt.ylim(0,len(taskList))
          
-    textStr = "*** Deadline Monotonic Scheduling ***\n"
+    textStr = "*** Round-Robin Scheduling ***\n"
     textStr += "------------------------------------------------------\n"
-    textStr += task_table(taskList)
+    #textStr += task_table(taskList)
     textStr += "U:\t{:.2f}\n".format(util)
     textStr += "Missed Deadlines: {}".format(missedDeadlines)
     textStr = textStr.expandtabs()
-    plt.title(textStr,fontdict={'fontsize': 8, 'fontweight': 'medium'},loc='left')
+    plt.title(textStr,fontdict={'fontsize': 12, 'fontweight': 'medium'},loc='left')
     plt.show()
