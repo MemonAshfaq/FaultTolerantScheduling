@@ -27,6 +27,7 @@ DEADLINEMISS=500
 USE=1
 missedDeadlines = 0
 
+RUNTIME=50
 #===============================================================================
 # Few useful function definitions
 #===============================================================================
@@ -88,11 +89,6 @@ class TaskIns(object):
             return True
         return False
 
-    def get_unique_name(self):
-        '''
-        Get name as name#id
-        '''
-        return str(self.name) + "#" + str(self.id)
     
 class TaskType(object):
     '''
@@ -180,12 +176,12 @@ if __name__ == '__main__':
     #initialize all time entries in the time table with 0. 
     tt = OrderedDict()
     for i in range(len(taskList)):
-        tt[taskList[i].name] = [[0]*hyperperiod,taskList[i].color]
+        tt[taskList[i].name] = [[0]*RUNTIME,taskList[i].color]
 
-    #Traverse through hyperperiod and find out all eligible task at each instance. Append each
+    #Traverse through RUNTIME and find out all eligible task at each instance. Append each
     #task in a list. We will pick the task with shortest deadline at each instance and put
     #it on CPU when it is time to schedule.
-    for i in xrange(0, hyperperiod):
+    for i in xrange(0, RUNTIME):
         for task_type in taskList:
             if  i  % task_type.P == 0:
                 start = i
@@ -196,7 +192,7 @@ if __name__ == '__main__':
     
     #Simulate a clock
     clock_step = 1
-    for i in xrange(0, hyperperiod, clock_step):
+    for i in xrange(0, RUNTIME, clock_step):
         print "t:",i,":\t",
         #Fetch possible tasks that can use CPU and sort them by priority
         possible = []
@@ -234,8 +230,8 @@ if __name__ == '__main__':
     ax.set_aspect('auto')
 
     # Major ticks every 2, minor ticks every 1
-    major_xticks = np.arange(0, hyperperiod+1, hyperperiod/10)
-    minor_xticks = np.arange(0, hyperperiod+1, 1)
+    major_xticks = np.arange(0, RUNTIME+1, RUNTIME/10)
+    minor_xticks = np.arange(0, RUNTIME+1, 1)
     
     ax.set_xticks(major_xticks)
     ax.set_xticks(minor_xticks, minor=True)
@@ -252,12 +248,12 @@ if __name__ == '__main__':
     ax.grid(which='major', alpha=0.5)
     
     for y, (name,(row,color)) in enumerate(tt.items()):
-        #Traverse through the hyperperiod. Mark deadline and period of each task with arrows.
+        #Traverse through the RUNTIME. Mark deadline and period of each task with arrows.
         for j,task in enumerate(taskList):
-            for i in xrange(0,hyperperiod+1,clock_step):
+            for i in xrange(0,RUNTIME+1,clock_step):
                 if (i % task.P == task.D) and (i > 0):
                     ax.annotate("",xy=(i,j),xycoords= 'data',xytext=(i,j+1),textcoords='data',
-                        arrowprops=dict(arrowstyle='->',color='orange'))
+                        arrowprops=dict(arrowstyle='->',color='black'))
                 if (i % task.P == 0):
                     ax.annotate("",xy=(i,j+1),xycoords= 'data',xytext=(i,j),textcoords='data',
                         arrowprops=dict(arrowstyle='->',color='blue'))        
@@ -280,14 +276,16 @@ if __name__ == '__main__':
                 
 
 
-    plt.xlim(0,hyperperiod)
+    plt.xlim(0,RUNTIME)
     plt.ylim(0,len(taskList))
          
     textStr = "*** Deadline Monotonic Scheduling ***\n"
     textStr += "------------------------------------------------------\n"
     #textStr += task_table(taskList)
-    textStr += "U:\t{:.2f}\n".format(util)
-    textStr += "Missed Deadlines: {}".format(missedDeadlines)
+    textStr += "CPU utilization:\t{:.2f}\n".format(util)
+    #textStr+= r'$Average\ Task\ Utilization\ \alpha: {}$'.format(util / len(taskList)) + "\n"
+    textStr += "Hyperperiod:\t{}\n".format(hyperperiod)    
+    textStr += "Missed Deadlines: \t{}".format(missedDeadlines)
     textStr = textStr.expandtabs()
-    plt.title(textStr,fontdict={'fontsize': 12, 'fontweight': 'medium'},loc='left')
+    plt.title(textStr,fontdict={'fontsize': 8, 'fontweight': 'medium'},loc='left')
     plt.show()
