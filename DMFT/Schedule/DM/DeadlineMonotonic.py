@@ -19,7 +19,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 from collections import OrderedDict
 import fractions
-import random
 #===============================================================================
 # Global variable and Constants
 #===============================================================================
@@ -28,7 +27,7 @@ CPU_USAGE_MARKER    =   1
 FAULT_MARKER        =   100
 MTTF                =   50
 RUNTIME             =   1000
-FAULT_TOLERANCE     =   False
+FAULT_TOLERANCE     =   True
 
 missedDeadlines = 0
 
@@ -218,6 +217,7 @@ if __name__ == '__main__':
             if i in faults:
                 tt[on_cpu.name][0][i] = FAULT_MARKER
                 possible[0].usage = 0
+                print "Task {} faulted!".format(on_cpu.name) 
                 continue
             if i >= on_cpu.D: #missed a deadline already
                 print on_cpu.name, " missed the deadline!"
