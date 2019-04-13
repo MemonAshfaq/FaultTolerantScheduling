@@ -204,6 +204,10 @@ def RoundRobin(taskList):
                 for i in range(time, time+on_cpu.q):
                     if i >= RUNTIME:
                         continue
+                    if i in faults:
+                        on_cpu.C = on_cpu.bkpC
+                        tt[on_cpu.name][0][i] = FAULT_MARKER
+                        continue
                     #Is the deadline missed already?
                     if i >= ((on_cpu.instDone - 1) * on_cpu.P + on_cpu.D):
                         # yes, mark this time instance as "missed deadline" on the time table
@@ -213,12 +217,17 @@ def RoundRobin(taskList):
                     else:
                         # No. We did it before deadline. Mark this time instance as a "success" on time table
                         tt[on_cpu.name][0][i] = CPU_USAGE_MARKER
+                    on_cpu.C -= 1
                 time += on_cpu.q
-                on_cpu.C -= on_cpu.q
             else:
                 # No, time quantum is sufficient for this task. Just execute it and get rid of it from the queue.
                 for i in range(time,time+on_cpu.C):
-                    if i >= RUNTIME: continue
+                    if i >= RUNTIME: 
+                        continue
+                    if i in faults:
+                        on_cpu.C = on_cpu.bkpC
+                        tt[on_cpu.name][0][i] = FAULT_MARKER
+                        continue
                     # Is the deadline missed already?
                     if i >= ((on_cpu.instDone - 1) * on_cpu.P + on_cpu.D):
                         # yes, this time instance as "missed deadline" on the time table
@@ -228,8 +237,8 @@ def RoundRobin(taskList):
                     else:
                         # No. We did it before deadline. Mark this time instance as a "success" on time table
                         tt[on_cpu.name][0][i] = CPU_USAGE_MARKER
-                time+=on_cpu.C
-                on_cpu.C = 0
+                    on_cpu.C -= 1
+                time+=on_cpu.bkpC
             # Was a deadline missed? 
             if missFlag:
                 # Yes. We missed one. 
@@ -240,7 +249,7 @@ def RoundRobin(taskList):
             # remove a "done" task from queue.
             queue.remove(on_cpu)
             rp -= 1
-
+    print "Faults: ", faults
 #===============================================================================
 # Start execution from here
 #===============================================================================
