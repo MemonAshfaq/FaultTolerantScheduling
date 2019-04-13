@@ -97,7 +97,6 @@ def RoundRobin(taskList):
     queue = []
     time = 0
     rp = 0
-    done = 0
     start = 0
     global avC
     global avD
@@ -201,6 +200,7 @@ def RoundRobin(taskList):
                     else:
                         # No. We did it before deadline. Mark this time instance as a "success" on time table
                         tt[on_cpu.name][0][i] = USE
+                time += on_cpu.q
                 on_cpu.C -= on_cpu.q
             else:
                 # No, time quantum is sufficient for this task. Just execute it and get rid of it from the queue.
@@ -216,8 +216,6 @@ def RoundRobin(taskList):
                         tt[on_cpu.name][0][i] = USE
                 time+=on_cpu.C
                 on_cpu.C = 0
-                done+=1
-                rp -= 1
             # Was a deadline missed? 
             if missFlag:
                 # Yes. We missed one. 
@@ -227,6 +225,7 @@ def RoundRobin(taskList):
         else:
             # remove a "done" task from queue.
             queue.remove(on_cpu)
+            rp -= 1
 
 #===============================================================================
 # Start execution from here
