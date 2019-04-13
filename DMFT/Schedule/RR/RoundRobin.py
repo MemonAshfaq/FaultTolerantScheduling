@@ -15,14 +15,28 @@ Fault Model:
 #===============================================================================
 # Imports
 #===============================================================================
-
 import fractions
 from collections import OrderedDict
 import matplotlib.pyplot as plt
 import numpy as np
+import random
+#===============================================================================
+# Global variable and Constants
+#===============================================================================
+DEADLINEMISS_MARKER =   500
+CPU_USAGE_MARKER    =   1
+FAULT_MARKER        =   100
+MTTF                =   50
+RUNTIME             =   1000
+FAULT_TOLERANCE     =   True
 
-DEADLINEMISS=500
-USE=1
+avC=0 #average execution time
+avD=0 #average D
+tq = 4 #original time quantum
+hyperperiod = []
+util = 0 #CPU utilization 
+tt = OrderedDict() # Time table. 
+missedDeadlines = 0 # Number of deadlines missed during this simulation
 
 #===============================================================================
 # A Task class.
@@ -46,17 +60,6 @@ class Task:
 
     def __str__(self):
         return self.name + "\t" + str(self.bkpC) + "\t" + str(self.D) + "\t" + str(self.P) + "\n"
-
-#===============================================================================
-# Global variables
-#===============================================================================
-avC=0 #average execution time
-avD=0 #average D
-tq = 4 #original time quantum
-hyperperiod = []
-util = 0 #CPU utilization 
-tt = OrderedDict() # Time table. 
-missedDeadlines = 0 # Number of deadlines missed during this simulation
 
 
 #===============================================================================
@@ -153,16 +156,24 @@ def RoundRobin(taskList):
         t.inst = hyperperiod/t.P
     
     #===========================================================================
-    # Create a time table of hyperperiod x n. Initially all 0. Used time instances
+    # Create a time table of RUNTIME x n. Initially all 0. Used time instances
     # will be marked as 1. Missed deadline will be marked as 500. 
     #===========================================================================
     for t in taskList:
-        tt[t.name] = [[0]*hyperperiod,t.color]
+        tt[t.name] = [[0]*RUNTIME,t.color]
 
+    #===============================================================================
+    # Inject faults throughout the RUNTIME based on MTTF
+    #===============================================================================
+    faults = []
+    if FAULT_TOLERANCE:
+        for i in xrange(0,RUNTIME):
+            if i % MTTF == 0:
+                faults.append(random.randint(i,i+MTTF-1))
     #===========================================================================
     # Start scheduling the task list over the hyper period in round robin fashion
     #===========================================================================
-    while time < hyperperiod:
+    while time < RUNTIME:
         # Check for all the "new" tasks arrived on or before this time.
         for t in taskList:
             if (time - t.instDone * t.P) >= 0:
@@ -191,29 +202,32 @@ def RoundRobin(taskList):
                 # Yes it is. Execute for the assigned time quantum and put the remaining at
                 # the end of queue.
                 for i in range(time, time+on_cpu.q):
+                    if i >= RUNTIME:
+                        continue
                     #Is the deadline missed already?
                     if i >= ((on_cpu.instDone - 1) * on_cpu.P + on_cpu.D):
                         # yes, mark this time instance as "missed deadline" on the time table
-                        tt[on_cpu.name][0][i] = DEADLINEMISS
+                        tt[on_cpu.name][0][i] = DEADLINEMISS_MARKER
                         print "time:",i ," ", on_cpu.name, " missed the deadline!"
                         missFlag = True
                     else:
                         # No. We did it before deadline. Mark this time instance as a "success" on time table
-                        tt[on_cpu.name][0][i] = USE
+                        tt[on_cpu.name][0][i] = CPU_USAGE_MARKER
                 time += on_cpu.q
                 on_cpu.C -= on_cpu.q
             else:
                 # No, time quantum is sufficient for this task. Just execute it and get rid of it from the queue.
                 for i in range(time,time+on_cpu.C):
+                    if i >= RUNTIME: continue
                     # Is the deadline missed already?
                     if i >= ((on_cpu.instDone - 1) * on_cpu.P + on_cpu.D):
                         # yes, this time instance as "missed deadline" on the time table
-                        tt[on_cpu.name][0][i] = DEADLINEMISS
+                        tt[on_cpu.name][0][i] = DEADLINEMISS_MARKER
                         print "time:",i ," ", on_cpu.name, " missed the deadline!"
                         missFlag = True
                     else:
                         # No. We did it before deadline. Mark this time instance as a "success" on time table
-                        tt[on_cpu.name][0][i] = USE
+                        tt[on_cpu.name][0][i] = CPU_USAGE_MARKER
                 time+=on_cpu.C
                 on_cpu.C = 0
             # Was a deadline missed? 
@@ -265,8 +279,8 @@ if __name__ == '__main__':
     ax.set_aspect('auto')
 
     # Major ticks every 2, minor ticks every 1
-    major_xticks = np.arange(0, hyperperiod+1, hyperperiod/10)
-    minor_xticks = np.arange(0, hyperperiod+1, 1)
+    major_xticks = np.arange(0, RUNTIME+1, RUNTIME/10)
+    minor_xticks = np.arange(0, RUNTIME+1, 1)
     
     ax.set_xticks(major_xticks)
     ax.set_xticks(minor_xticks, minor=True)
@@ -283,42 +297,49 @@ if __name__ == '__main__':
     ax.grid(which='major', alpha=0.5)
     
     for y, (name,(row,color)) in enumerate(tt.items()):
-        #Traverse through the hyperperiod. Mark deadline and period of each task with arrows.
+        #Traverse through the RUNTIME. Mark deadline and period of each task with arrows.
         for j,task in enumerate(taskList):
-            for i in xrange(0,hyperperiod+1,1):
+            for i in xrange(0,RUNTIME+1,1):
                 if (i % task.P == task.D) and (i > 0):
                     ax.annotate("",xy=(i,j),xycoords= 'data',xytext=(i,j+1),textcoords='data',
-                        arrowprops=dict(arrowstyle='->',color='orange'))
+                        arrowprops=dict(arrowstyle='->',color='black'))
                 if (i % task.P == 0):
                     ax.annotate("",xy=(i,j+1),xycoords= 'data',xytext=(i,j),textcoords='data',
-                        arrowprops=dict(arrowstyle='->',color='blue'))
+                        arrowprops=dict(arrowstyle='->',color='blue'))        
 
         for x, col in enumerate(row):
             x1 = [x, x+1]
             y1 = np.array([y, y])
             y2 = y1+1
-            if col==USE:
+            if col==CPU_USAGE_MARKER:
                 plt.fill_between(x1, y1, y2=y2, color=color)
                 plt.text(avg(x1[0], x1[1]), avg(y1[0], y2[0]), s='', 
                                             horizontalalignment='center',
                                             verticalalignment='center')
                 
-            if col==DEADLINEMISS:
+            if col==DEADLINEMISS_MARKER:
                 plt.fill_between(x1, y1, y2=y2, color='red')
                 plt.text(avg(x1[0], x1[1]), avg(y1[0], y2[0]), s='', 
                                             horizontalalignment='center',
                                             verticalalignment='center')
                 
+            if col==FAULT_MARKER:
+                plt.fill_between(x1, y1, y2=y2, color='yellow')
+                plt.text(avg(x1[0], x1[1]), avg(y1[0], y2[0]), s='', 
+                                            horizontalalignment='center',
+                                            verticalalignment='center')
 
 
-    plt.xlim(0,hyperperiod)
+    plt.xlim(0,RUNTIME)
     plt.ylim(0,len(taskList))
          
     textStr = "*** Round-Robin Scheduling ***\n"
     textStr += "------------------------------------------------------\n"
     #textStr += task_table(taskList)
-    textStr += "U:\t{:.2f}\n".format(util)
-    textStr += "Missed Deadlines: {}".format(missedDeadlines)
+    textStr += "CPU utilization:\t{:.2f}\n".format(util)
+    #textStr+= r'$Average\ Task\ Utilization\ \alpha: {}$'.format(util / len(taskList)) + "\n"
+    textStr += "Hyperperiod:\t{}\n".format(hyperperiod)    
+    textStr += "Missed Deadlines: \t{}".format(missedDeadlines)
     textStr = textStr.expandtabs()
-    plt.title(textStr,fontdict={'fontsize': 12, 'fontweight': 'medium'},loc='left')
+    plt.title(textStr,fontdict={'fontsize': 8, 'fontweight': 'medium'},loc='left')
     plt.show()
