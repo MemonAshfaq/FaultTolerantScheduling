@@ -19,6 +19,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 from collections import OrderedDict
 import fractions
+from matplotlib.lines import Line2D
+
 #===============================================================================
 # Global variable and Constants
 #===============================================================================
@@ -297,14 +299,23 @@ if __name__ == '__main__':
 
     plt.xlim(0,RUNTIME)
     plt.ylim(0,len(taskList))
-         
+    ax.set_xlabel(r'$Time\rightarrow$', fontsize='medium')
+    ax.set_ylabel('Tasks (WCET, Deadline, Period)', fontsize='medium')
     textStr = "*** Deadline Monotonic Scheduling ***\n"
     textStr += "------------------------------------------------------\n"
     #textStr += task_table(taskList)
     textStr += "CPU utilization:\t{:.2f}\n".format(util)
     #textStr+= r'$Average\ Task\ Utilization\ \alpha: {}$'.format(util / len(taskList)) + "\n"
-    textStr += "Hyperperiod:\t{}\n".format(hyperperiod)    
+    textStr += "Hyperperiod:\t{}\n".format(hyperperiod)
+    textStr += "Mean Time to Failure (MTTF):\t{}\n".format(MTTF)
     textStr += "Missed Deadlines: \t{}".format(missedDeadlines)
     textStr = textStr.expandtabs()
     plt.title(textStr,fontdict={'fontsize': 8, 'fontweight': 'medium'},loc='left')
+    legend_elements = [Line2D([0], [0], color='green', lw=4, label='Task on CPU'),
+                       Line2D([0], [0], color='yellow', lw=4, label='Fault occurrence'),
+                       Line2D([0], [0], color='red', lw=4, label='Deadline missed'),    
+                       Line2D([0], [0], color='k', lw=2, label=r'Deadline$\downarrow$'),
+                       Line2D([0], [0], color='blue', lw=2, label=r'Period$\uparrow$')]
+    ax.legend(handles=legend_elements, loc='best')
+    
     plt.show()
