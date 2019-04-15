@@ -304,6 +304,8 @@ if __name__ == '__main__':
     ax.set_yticks(major_yticks)
     
     ax.set_yticklabels(ylabels,minor=False,rotation=15)
+    ax.tick_params(axis='both', which='major', labelsize=6)
+    
     ax.grid(which='minor', alpha=0.2)
     ax.grid(which='major', alpha=0.5)
     
@@ -362,5 +364,6 @@ if __name__ == '__main__':
                        Line2D([0], [0], color='k', lw=2, label=r'Deadline$\downarrow$'),
                        Line2D([0], [0], color='blue', lw=2, label=r'Period$\uparrow$')]
     ax.legend(handles=legend_elements, loc='best')
-    
-    plt.show()
+    plt.tight_layout()
+    plt.savefig('FTRR.pdf')
+    #plt.show()
